@@ -1,26 +1,91 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --game-bg: #0b1020;
+  --game-bg-2: #121a33;
+  --game-fg: #f4f6ff;
+  --game-muted: rgba(244, 246, 255, 0.75);
+  --game-accent: #7c5cff;
+  --game-accent-2: #44d7b6;
+  --game-danger: #ff4d6d;
+  --game-warning: #ffcd4a;
+  --pixel-border: #0a0a0a;
+  --pixel-panel: #1a2344;
+  --pixel-panel-2: #0f1730;
+  --pixel-shadow: rgba(0, 0, 0, 0.55);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--game-bg);
+  --color-foreground: var(--game-fg);
+  --font-sans: var(--font-pixel-body);
+  --font-title: var(--font-pixel-title);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--game-bg);
+  color: var(--game-fg);
+  font-family: var(--font-pixel-body), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  letter-spacing: 0.3px;
+}
+
+.pixel-bg {
+  background-image: radial-gradient(
+      rgba(124, 92, 255, 0.25) 1px,
+      transparent 1px
+    ),
+    linear-gradient(180deg, var(--game-bg), var(--game-bg-2));
+  background-size: 18px 18px, 100% 100%;
+  background-position: 0 0, 0 0;
+}
+
+.pixel-text-title {
+  font-family: var(--font-pixel-title), ui-monospace, monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.pixel-panel {
+  background: linear-gradient(180deg, var(--pixel-panel), var(--pixel-panel-2));
+  box-shadow: 0 10px 0 var(--pixel-shadow);
+  border: 4px solid var(--pixel-border);
+}
+
+.pixel-frame {
+  border: 4px solid var(--pixel-border);
+  box-shadow: 6px 6px 0 var(--pixel-shadow);
+}
+
+.pixel-btn {
+  border: 4px solid var(--pixel-border);
+  box-shadow: 0 6px 0 var(--pixel-shadow);
+  transform: translateY(0);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.pixel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--pixel-shadow);
+  filter: saturate(1.1);
+}
+
+.pixel-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 var(--pixel-shadow);
+}
+
+.pixel-pop {
+  animation: pixel-pop 240ms ease-out both;
+}
+
+@keyframes pixel-pop {
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
