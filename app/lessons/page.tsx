@@ -44,7 +44,7 @@ export default function LessonsPage() {
   }
 
   return (
-    <GameLayout title="Level Select" subtitle="Pick a stage to begin.">
+    <GameLayout title="Level Select" subtitle="Pick a stage to begin." backHref="/">
       <div className="flex flex-col gap-4">
         {lessons.length === 0 ? (
           <PixelCard title="No Levels" subtitle="Ask the Game Master to add lessons in Strapi.">
