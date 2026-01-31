@@ -107,7 +107,6 @@ export default function RegisterPage() {
               className="pixel-frame bg-[color:var(--pixel-panel-2)] px-3 py-3 text-2xl text-[color:var(--game-fg)] placeholder:text-[color:var(--game-muted)] focus:outline-none"
               type="password"
               placeholder="••••••••"
-              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
