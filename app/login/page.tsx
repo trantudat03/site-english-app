@@ -87,6 +87,11 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
+        <div className="mt-4 text-center">
+          <Link href="/forgot-password" className="pixel-text-title text-sm text-blue-500 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
       </PixelCard>
     </GameLayout>
   );
