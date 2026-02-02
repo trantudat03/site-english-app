@@ -59,9 +59,6 @@ export default function ProfilePage() {
                 <span className="text-[color:var(--game-muted)]">Email:</span> {profile.email}
               </div>
             )}
-            <div className="mt-2">
-              <span className="text-[color:var(--game-muted)]">User ID:</span> {profile.id}
-            </div>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">

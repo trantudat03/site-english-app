@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,13 +14,15 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (status === "authenticated") {
-    router.replace("/lessons");
-    return null;
-  }
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/lessons");
+    }
+  }, [status, router]);
 
   return (
     <GameLayout title="Register" subtitle="Create a new character.">
@@ -35,12 +37,17 @@ export default function RegisterPage() {
           className="flex flex-col gap-4"
           onSubmit={async (e) => {
             e.preventDefault();
+            if(password !== confirmPassword) {
+              setError("Passwords do not match.");
+              return;
+            }
             setSubmitting(true);
             setError(null);
             try {
               await register({ username, email, password });
               router.replace("/lessons");
             } catch (err) {
+               console.error("REGISTER ERROR:", err);
               if (err instanceof HttpError) setError(err.message);
               else setError("Register failed. Please try again.");
             } finally {
@@ -88,6 +95,20 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="pixel-text-title text-xs text-[color:var(--game-fg)]">
+              Confirm Password
+            </span>
+            <input
+              className="pixel-frame bg-[color:var(--pixel-panel-2)] px-3 py-3 text-2xl text-[color:var(--game-fg)] placeholder:text-[color:var(--game-muted)] focus:outline-none"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
           </label>
