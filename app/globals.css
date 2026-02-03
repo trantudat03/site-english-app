@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined");
 @import "tailwindcss";
 
 :root {
@@ -89,3 +90,35 @@ body {
     opacity: 1;
   }
 }
+/* ===== PIXEL POPUP ===== */
+.pixel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixel-popup {
+  width: 100%;
+  max-width: 720px;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pixel-popup-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.pixel-popup-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
