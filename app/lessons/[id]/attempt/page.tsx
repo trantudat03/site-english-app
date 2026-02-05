@@ -40,7 +40,20 @@ export default function LessonAttemptPage() {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, AttemptAnswerPayload | undefined>>({});
   const [startedAt] = useState(() => Date.now());
+  const [timeSpent, setTimeSpent] = useState(0);
 
+  useEffect(() =>{
+    const timer = setInterval(() =>{
+      setTimeSpent(Math.floor((Date.now() - startedAt) / 1000)); // Math.floor bỏ phần lẻ
+    },1000);
+    return () => clearInterval(timer)
+  },[startedAt]) 
+
+  function formatTime (seconds: number){
+    const m = Math.floor(seconds/60); // tổng số giây/60 lấy phút
+    const s = seconds % 60; 
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
   useEffect(() => {
     let active = true;
     (async () => {
@@ -94,9 +107,14 @@ export default function LessonAttemptPage() {
         subtitle={`Question ${index + 1} / ${questions.length}`}
         backHref={`/lessons/${lessonId}/start`}
         actions={
-          <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-xl text-[color:var(--game-accent-2)]">
-            {answeredCount}/{questions.length}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-lg text-[color:var(--game-accent-2)]">
+              {answeredCount}/{questions.length}
+            </span>
+            <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-lg text-[color:var(--game-accent-2)]">
+              {formatTime(timeSpent)}
+            </span>
+          </div>
         }
       >
         <div className="flex flex-col gap-4">
