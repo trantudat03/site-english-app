@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 import type { Profile } from "@/features/profile";
 import { getMyProfile } from "@/features/profile";
 import { RequireAuth, useAuth } from "@/features/auth";
 import { ErrorScreen, GameLayout, LoadingScreen, PixelButton, PixelCard } from "@/features/ui";
-import { SettingsModal } from "./settingsModal/SettingsModal";
+import { SettingsModal } from "@/components/profile/SettingsModal";
+import { GlobalModalRef } from "@/features/ui/modal";
 
 export default function ProfilePage() {
   const { logout } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  const settingsRef = useRef<GlobalModalRef>(null);
 
   useEffect(() => {
     let active = true;
@@ -57,7 +58,7 @@ export default function ProfilePage() {
               variant="ghost"
               size="sm"
               className="h-10 w-10 p-0 flex items-center justify-center"
-              onClick={() => setOpen(true)}
+              onClick={() => settingsRef.current?.open()}
             >
               <span className="material-symbols-outlined text-[var(--clay-dark)]">
                 settings
@@ -92,9 +93,7 @@ export default function ProfilePage() {
             </PixelButton>
           </div>
         </PixelCard>
-        {open && (
-          <SettingsModal onClose={() => setOpen(false)} />
-        )}
+        <SettingsModal ref={settingsRef} />
       </GameLayout>
 
     </RequireAuth>
