@@ -29,8 +29,8 @@ export function PixelPopup({
       onClick={handleClose}
       className={cn(
         "fixed inset-0 z-50 flex items-center justify-center",
+        "pt-6 sm:pt-10",
         "bg-black/60 transition-opacity duration-200",
-        "translate-y-[-25%]",
         closing && "opacity-0"
       )}
     >
