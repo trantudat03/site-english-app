@@ -7,11 +7,13 @@ import type { Profile } from "@/features/profile";
 import { getMyProfile } from "@/features/profile";
 import { RequireAuth, useAuth } from "@/features/auth";
 import { ErrorScreen, GameLayout, LoadingScreen, PixelButton, PixelCard } from "@/features/ui";
+import { SettingsModal } from "./settingsModal/SettingsModal";
 
 export default function ProfilePage() {
   const { logout } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,7 +51,20 @@ export default function ProfilePage() {
   return (
     <RequireAuth>
       <GameLayout title="Profile" subtitle="Your character sheet." backHref="/">
-        <PixelCard title="Player">
+        <PixelCard title="Player"
+          right={
+            <PixelButton
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0 flex items-center justify-center"
+              onClick={() => setOpen(true)}
+            >
+              <span className="material-symbols-outlined text-[var(--clay-dark)]">
+                settings
+              </span>
+            </PixelButton>
+          }
+        >
           <div className="text-2xl leading-7 text-[color:var(--game-fg)]">
             <div>
               <span className="text-[color:var(--game-muted)]">Username:</span> {profile.username}
@@ -77,7 +92,11 @@ export default function ProfilePage() {
             </PixelButton>
           </div>
         </PixelCard>
+        {open && (
+          <SettingsModal onClose={() => setOpen(false)} />
+        )}
       </GameLayout>
+
     </RequireAuth>
   );
 }

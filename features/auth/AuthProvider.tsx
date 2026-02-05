@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { AuthSession, AuthUser } from "@/features/auth/types";
-import { login as loginRequest, register as registerRequest } from "@/features/auth/authApi";
+import { login as loginRequest, register as registerRequest, changePassword as changePasswordRequest } from "@/features/auth/authApi";
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY, clearSession, getStoredUser, getToken, setSession } from "@/features/auth/storage";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -16,6 +16,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   login: (params: { identifier: string; password: string }) => Promise<AuthSession>;
   register: (params: { username: string; email: string; password: string }) => Promise<AuthSession>;
+  changePassword: (params: {currentPassword: string; password: string; passwordConfirmation: string}) =>Promise<AuthSession>;
   logout: () => void;
 };
 
@@ -58,6 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       register: async (params) => {
         const session = await registerRequest(params);
+        setSession(session);
+        setJwt(session.jwt);
+        setUser(session.user);
+        setStatus("authenticated");
+        return session;
+      },
+      changePassword: async (params) =>{
+        const session = await changePasswordRequest(params);
         setSession(session);
         setJwt(session.jwt);
         setUser(session.user);
