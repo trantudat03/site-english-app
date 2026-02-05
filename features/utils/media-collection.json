@@ -1,0 +1,29 @@
+{
+  "collections": [
+    {
+      "uid": "plugin::users-permissions.user",
+      "mediaFields": [
+        {
+          "name": "avatar",
+          "multiple": false,
+          "allowedTypes": ["images"]
+        }
+      ]
+    },
+    {
+      "uid": "api::lesson.lesson",
+      "mediaFields": [
+        {
+          "name": "background",
+          "multiple": false,
+          "allowedTypes": ["images"]
+        },
+        {
+          "name": "mascot",
+          "multiple": false,
+          "allowedTypes": ["images"]
+        }
+      ]
+    }
+  ]
+}
