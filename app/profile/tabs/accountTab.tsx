@@ -14,11 +14,24 @@ export function AccountTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
   const startedRef = useRef(false);
+
+  const validate = () => {
+    if (!currentPassword) return "Current password is required.";
+    if (!password) return "New password is required.";
+    if (password.length < 6) return "Password must be at least 6 characters.";
+    if (password !== passwordConfirmation) return "Password confirmation does not match.";
+    return null;
+  };
 
   const handleChangePassword = async () => {
     if (startedRef.current) return;
+
+    const validatetionError = validate();
+    if(validatetionError){
+      setError(validatetionError)
+      return
+    }
 
     startedRef.current = true;
     setLoading(true);
@@ -56,7 +69,6 @@ export function AccountTab() {
       </div>
 
       <div className="grid grid-cols-2 gap-x-6 gap-y-8">
-        {/* Current */}
         <label className="col-span-2 flex flex-col gap-3">
           <span className="text-xs uppercase tracking-widest opacity-80">
             Current password
@@ -70,8 +82,6 @@ export function AccountTab() {
             disabled={loading}
           />
         </label>
-
-        {/* New */}
         <label className="flex flex-col gap-3">
           <span className="text-xs uppercase tracking-widest opacity-80">
             New password
@@ -85,8 +95,6 @@ export function AccountTab() {
             disabled={loading}
           />
         </label>
-
-        {/* Confirm */}
         <label className="flex flex-col gap-3">
           <span className="text-xs uppercase tracking-widest opacity-80">
             Confirm password
@@ -101,20 +109,16 @@ export function AccountTab() {
           />
         </label>
       </div>
-
-      {/* FEEDBACK */}
       {error && (
         <div className="pixel-frame p-3 text-sm text-[color:var(--game-danger)]">
           {error}
         </div>
       )}
-
       {success && (
         <div className="pixel-frame p-3 text-sm text-[color:var(--game-accent-2)]">
           Password changed successfully!
         </div>
       )}
-
       <div>
         <PixelButton
           loading={loading}

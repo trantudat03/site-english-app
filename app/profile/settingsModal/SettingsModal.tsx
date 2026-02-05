@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PixelPopup } from "@/features/ui/PixelPopup";
 import { PixelTabButton } from "@/features/ui/PixelTabButton";
 import { AccountTab } from "../tabs/accountTab";
+import { PixelButton } from "@/features/ui";
 
 type TabKey = "account" | "privacy" | "terms";
 
@@ -22,14 +23,23 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         </>
       }
       footer={
-        <button onClick={onClose} className="pixel-btn px-6 py-2">
+        <PixelButton size="lg" variant="danger" type="button" onClick={onClose}>
           Close
-        </button>
+        </PixelButton>
       }
     >
-      <div className="flex flex-1 overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-[14rem_1fr] h-full min-h-0">
         {/* SIDEBAR */}
-        <aside className="w-56 shrink-0 border-r-4 border-[color:var(--pixel-border)] p-4 space-y-3">
+        <aside
+          className="
+            border-b-4 md:border-b-0
+            md:border-r-4
+            border-[color:var(--pixel-border)]
+            p-3
+            flex md:flex-col gap-2
+            overflow-x-auto
+          "
+        >
           <PixelTabButton
             active={tab === "account"}
             onClick={() => setTab("account")}
@@ -54,9 +64,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             Terms
           </PixelTabButton>
         </aside>
-
-        {/* CONTENT */}
-        <main className="flex-1 overflow-y-auto min-h-0 pixel-popup-content">
+        <main className="min-h-0 overflow-y-auto p-6">
           {tab === "account" && <AccountTab />}
           {tab === "privacy" && <div className="pixel-text">Privacy content</div>}
           {tab === "terms" && <div className="pixel-text">Terms content</div>}
