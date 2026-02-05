@@ -21,7 +21,7 @@ export function GameLayout({
   className,
 }: GameLayoutProps) {
   return (
-    <div className="pixel-bg min-h-screen">
+    <div id="pixel-root" className="pixel-bg min-h-screen relative">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
         <header className="pixel-pop">
           <div className="flex items-start justify-between gap-4">
