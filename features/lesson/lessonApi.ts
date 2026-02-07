@@ -1,34 +1,58 @@
 import { fetchWithAuth } from "@/features/api";
 import type { LessonId, LessonInfo, LessonSummary } from "@/features/lesson/types";
+import { getMediaUrl, StrapiMedia } from "../utils/media";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+function asStrapiMedia(value: unknown): StrapiMedia | null {
+  if (typeof value !== "object" || value === null) return null;
+  return value as StrapiMedia;
 }
 
 function toLessonSummary(entity: unknown): LessonSummary {
   const e = asRecord(entity) ?? {};
   const attributes = asRecord(e.attributes) ?? e;
+
   const id = String(e.id ?? e.documentId ?? "");
+
+  const backgroundUrl = getMediaUrl(
+    asStrapiMedia(attributes.background)
+  );
+
+  const mascotUrl = getMediaUrl(
+    asStrapiMedia(attributes.mascot)
+  );
 
   return {
     id,
     title: String(attributes.title ?? attributes.name ?? `Lesson ${id}`),
+
     description:
-      typeof attributes.description === "string" ? attributes.description : undefined,
+      typeof attributes.description === "string"
+        ? attributes.description
+        : undefined,
+
     stage:
       typeof attributes.stage === "number"
         ? attributes.stage
         : typeof attributes.level === "number"
-          ? attributes.level
-          : undefined,
+        ? attributes.level
+        : undefined,
+
     questionCount:
       typeof attributes.questionCount === "number"
         ? attributes.questionCount
         : typeof attributes.question_bank_count === "number"
-          ? attributes.question_bank_count
-          : undefined,
+        ? attributes.question_bank_count
+        : undefined,
+
+    backgroundUrl,
+    mascotUrl,
   };
 }
+
+
 
 export async function listLessons(): Promise<LessonSummary[]> {
   const res = await fetchWithAuth<unknown>("/api/lessons?pagination[page]=1&pagination[pageSize]=20");
