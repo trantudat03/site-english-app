@@ -44,10 +44,17 @@ export default function LessonsPage() {
   }
 
   return (
-    <GameLayout title="Level Select" subtitle="Pick a stage to begin." backHref="/">
+    <GameLayout
+      title="Level Select"
+      subtitle="Pick a stage to begin."
+      backHref="/"
+    >
       <div className="flex flex-col gap-4">
         {lessons.length === 0 ? (
-          <PixelCard title="No Levels" subtitle="Ask the Game Master to add lessons in Strapi.">
+          <PixelCard
+            title="No Levels"
+            subtitle="Ask the Game Master to add lessons in Strapi."
+          >
             <Link href="/" className="inline-flex">
               <PixelButton size="lg" variant="secondary">
                 Back to Menu
@@ -55,32 +62,71 @@ export default function LessonsPage() {
             </Link>
           </PixelCard>
         ) : (
-          lessons.map((lesson, idx) => (
-            <PixelCard
-              key={lesson.id}
-              title={`Stage ${lesson.stage ?? idx + 1}`}
-              subtitle={lesson.title}
-              right={
-                <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-xl text-[color:var(--game-warning)]">
-                  {lesson.questionCount ?? "?"} Q
-                </span>
+          lessons.map((lesson, idx) => {
+            const bgStyle = lesson.backgroundUrl
+              ? {
+                backgroundImage: `url(${lesson.backgroundUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
               }
-            >
-              {lesson.description && (
-                <p className="mt-2 text-2xl leading-7 text-[color:var(--game-muted)]">
-                  {lesson.description}
-                </p>
-              )}
-              <div className="mt-4">
-                <Link href={`/lessons/${lesson.id}/start`} className="inline-flex">
-                  <PixelButton size="lg" variant="primary">
-                    Enter
-                  </PixelButton>
-                </Link>
-              </div>
-            </PixelCard>
-          ))
+              : undefined;
+
+            return (
+              <PixelCard
+                key={lesson.id}
+                className="relative overflow-hidden"
+                style={bgStyle}
+                title={`Stage ${lesson.stage ?? idx + 1}`}
+                subtitle={lesson.title}
+                right={
+                  <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-xl text-[color:var(--game-warning)]">
+                    {lesson.questionCount ?? "?"} Q
+                  </span>
+                }
+              >
+                {/* overlay */}
+                {lesson.backgroundUrl && (
+                  <div className="absolute inset-0 z-0 bg-black/40" />
+                )}
+
+                {/* mascot */}
+                {lesson.mascotUrl && (
+                  <img
+                    src={lesson.mascotUrl}
+                    alt=""
+                    className="
+                      absolute bottom-2 right-2 z-20
+                      h-24
+                      pixelated
+                      drop-shadow-[0_4px_0_rgba(0,0,0,0.6)]
+                    "
+                  />
+                )}
+
+                {/* content */}
+                <div className="relative z-10">
+                  {lesson.description && (
+                    <p className="mt-2 text-2xl leading-7 text-[color:var(--game-muted)]">
+                      {lesson.description}
+                    </p>
+                  )}
+
+                  <div className="mt-4">
+                    <Link
+                      href={`/lessons/${lesson.id}/start`}
+                      className="inline-flex"
+                    >
+                      <PixelButton size="lg" variant="primary">
+                        Enter
+                      </PixelButton>
+                    </Link>
+                  </div>
+                </div>
+              </PixelCard>
+            );
+          })
         )}
+
       </div>
     </GameLayout>
   );
