@@ -20,12 +20,20 @@ export type LessonQuestion = {
   options?: QuestionOption[];
 };
 
+export  type MediaAsset  = {
+  url?: string;
+  name?: string;
+}
 export type LessonSummary = {
   id: LessonId;
   title: string;
   description?: string;
   stage?: number;
   questionCount?: number;
+
+  background?: MediaAsset | null;
+  backgroundColor?: string | null;
+  mascot?: MediaAsset | null;
 };
 
 export type LessonPreview = {

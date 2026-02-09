@@ -7,6 +7,7 @@ import type { LessonSummary } from "@/features/lesson";
 import { listLessons } from "@/features/lesson";
 import { useAuth } from "@/features/auth";
 import { ErrorScreen, GameLayout, LoadingScreen, PixelButton, PixelCard } from "@/features/ui";
+import { LessonCard } from "@/components/lesson/LessonCard";
 
 export default function LessonsPage() {
   const { status } = useAuth();
@@ -44,10 +45,17 @@ export default function LessonsPage() {
   }
 
   return (
-    <GameLayout title="Level Select" subtitle="Pick a stage to begin." backHref="/">
+    <GameLayout
+      title="Level Select"
+      subtitle="Pick a stage to begin."
+      backHref="/"
+    >
       <div className="flex flex-col gap-4">
         {lessons.length === 0 ? (
-          <PixelCard title="No Levels" subtitle="Ask the Game Master to add lessons in Strapi.">
+          <PixelCard
+            title="No Levels"
+            subtitle="Ask the Game Master to add lessons in Strapi."
+          >
             <Link href="/" className="inline-flex">
               <PixelButton size="lg" variant="secondary">
                 Back to Menu
@@ -55,32 +63,11 @@ export default function LessonsPage() {
             </Link>
           </PixelCard>
         ) : (
-          lessons.map((lesson, idx) => (
-            <PixelCard
-              key={lesson.id}
-              title={`Stage ${lesson.stage ?? idx + 1}`}
-              subtitle={lesson.title}
-              right={
-                <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-xl text-[color:var(--game-warning)]">
-                  {lesson.questionCount ?? "?"} Q
-                </span>
-              }
-            >
-              {lesson.description && (
-                <p className="mt-2 text-2xl leading-7 text-[color:var(--game-muted)]">
-                  {lesson.description}
-                </p>
-              )}
-              <div className="mt-4">
-                <Link href={`/lessons/${lesson.id}/start`} className="inline-flex">
-                  <PixelButton size="lg" variant="primary">
-                    Enter
-                  </PixelButton>
-                </Link>
-              </div>
-            </PixelCard>
+          lessons.map((lesson, idx) =>(
+            <LessonCard key={lesson.id} lesson={lesson} index={idx} />
           ))
         )}
+
       </div>
     </GameLayout>
   );
