@@ -7,6 +7,7 @@ import type { LessonSummary } from "@/features/lesson";
 import { listLessons } from "@/features/lesson";
 import { useAuth } from "@/features/auth";
 import { ErrorScreen, GameLayout, LoadingScreen, PixelButton, PixelCard } from "@/features/ui";
+import { LessonCard } from "@/components/lesson/LessonCard";
 
 export default function LessonsPage() {
   const { status } = useAuth();
@@ -62,69 +63,9 @@ export default function LessonsPage() {
             </Link>
           </PixelCard>
         ) : (
-          lessons.map((lesson, idx) => {
-            const bgStyle = lesson.backgroundUrl
-              ? {
-                backgroundImage: `url(${lesson.backgroundUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }
-              : undefined;
-
-            return (
-              <PixelCard
-                key={lesson.id}
-                className="relative overflow-hidden"
-                style={bgStyle}
-                title={`Stage ${lesson.stage ?? idx + 1}`}
-                subtitle={lesson.title}
-                right={
-                  <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-1 text-xl text-[color:var(--game-warning)]">
-                    {lesson.questionCount ?? "?"} Q
-                  </span>
-                }
-              >
-                {/* overlay */}
-                {lesson.backgroundUrl && (
-                  <div className="absolute inset-0 z-0 bg-black/40" />
-                )}
-
-                {/* mascot */}
-                {lesson.mascotUrl && (
-                  <img
-                    src={lesson.mascotUrl}
-                    alt=""
-                    className="
-                      absolute bottom-2 right-2 z-20
-                      h-24
-                      pixelated
-                      drop-shadow-[0_4px_0_rgba(0,0,0,0.6)]
-                    "
-                  />
-                )}
-
-                {/* content */}
-                <div className="relative z-10">
-                  {lesson.description && (
-                    <p className="mt-2 text-2xl leading-7 text-[color:var(--game-muted)]">
-                      {lesson.description}
-                    </p>
-                  )}
-
-                  <div className="mt-4">
-                    <Link
-                      href={`/lessons/${lesson.id}/start`}
-                      className="inline-flex"
-                    >
-                      <PixelButton size="lg" variant="primary">
-                        Enter
-                      </PixelButton>
-                    </Link>
-                  </div>
-                </div>
-              </PixelCard>
-            );
-          })
+          lessons.map((lesson, idx) =>(
+            <LessonCard key={lesson.id} lesson={lesson} index={idx} />
+          ))
         )}
 
       </div>

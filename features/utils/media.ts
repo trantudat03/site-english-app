@@ -1,7 +1,4 @@
-export type StrapiMedia = {
-  url?: string;
-  name?: string;
-};
+import type {MediaAsset} from "@/features/lesson/types";
 
 export function withCmsUrl(path?: unknown): string | null {
   if (typeof path !== "string") return null;
@@ -13,7 +10,7 @@ export function withCmsUrl(path?: unknown): string | null {
 
   return `${base.replace(/\/$/, "")}${path}`;
 }
-export function getMediaUrl(media:StrapiMedia | null): string | null {
+export function getMediaUrl(media:MediaAsset | null): string | null {
   if (!media) return null;
   // case 1: đã có url
   if (typeof media.url === "string") {

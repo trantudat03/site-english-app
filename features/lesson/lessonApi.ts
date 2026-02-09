@@ -1,66 +1,18 @@
 import { fetchWithAuth } from "@/features/api";
 import type { LessonId, LessonInfo, LessonSummary } from "@/features/lesson/types";
-import { getMediaUrl, StrapiMedia } from "../utils/media";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
 }
-function asStrapiMedia(value: unknown): StrapiMedia | null {
-  if (typeof value !== "object" || value === null) return null;
-  return value as StrapiMedia;
-}
-
-function toLessonSummary(entity: unknown): LessonSummary {
-  const e = asRecord(entity) ?? {};
-  const attributes = asRecord(e.attributes) ?? e;
-
-  const id = String(e.id ?? e.documentId ?? "");
-
-  const backgroundUrl = getMediaUrl(
-    asStrapiMedia(attributes.background)
-  );
-
-  const mascotUrl = getMediaUrl(
-    asStrapiMedia(attributes.mascot)
-  );
-
-  return {
-    id,
-    title: String(attributes.title ?? attributes.name ?? `Lesson ${id}`),
-
-    description:
-      typeof attributes.description === "string"
-        ? attributes.description
-        : undefined,
-
-    stage:
-      typeof attributes.stage === "number"
-        ? attributes.stage
-        : typeof attributes.level === "number"
-        ? attributes.level
-        : undefined,
-
-    questionCount:
-      typeof attributes.questionCount === "number"
-        ? attributes.questionCount
-        : typeof attributes.question_bank_count === "number"
-        ? attributes.question_bank_count
-        : undefined,
-
-    backgroundUrl,
-    mascotUrl,
-  };
-}
-
-
 
 export async function listLessons(): Promise<LessonSummary[]> {
-  const res = await fetchWithAuth<unknown>("/api/lessons?pagination[page]=1&pagination[pageSize]=20");
+  const res = await fetchWithAuth<{
+    data: LessonSummary[];
+    meta: unknown;
+  }>("/api/lessons?pagination[page]=1&pagination[pageSize]=20");
 
-  const root = asRecord(res);
-  const items = Array.isArray(root?.data) ? root?.data : Array.isArray(res) ? (res as unknown[]) : [];
-  return items.map(toLessonSummary).filter((l) => Boolean(l.id));
-}
+  return res.data
+} 
 
 export async function getLessonInfo(lessonId: LessonId): Promise<LessonInfo> {
   const res = await fetchWithAuth<unknown>(`/api/lessons/${lessonId}`);
