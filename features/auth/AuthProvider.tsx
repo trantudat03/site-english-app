@@ -5,8 +5,14 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { AuthSession, AuthUser } from "@/features/auth/types";
-import { login as loginRequest, register as registerRequest, changePassword as changePasswordRequest } from "@/features/auth/authApi";
-import { AUTH_TOKEN_KEY, AUTH_USER_KEY, clearSession, getStoredUser, getToken, setSession } from "@/features/auth/storage";
+import {
+  login as loginRequest,
+  register as registerRequest,
+  changePassword as changePasswordRequest,
+  logout as logoutRequest,
+  refreshToken as refreshTokenRequest,
+} from "@/features/auth/authApi";
+import { tokenStore } from "@/features/auth/tokenStore";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -16,32 +22,48 @@ type AuthContextValue = {
   user: AuthUser | null;
   login: (params: { identifier: string; password: string }) => Promise<AuthSession>;
   register: (params: { username: string; email: string; password: string }) => Promise<AuthSession>;
-  changePassword: (params: {currentPassword: string; password: string; passwordConfirmation: string}) =>Promise<AuthSession>;
-  logout: () => void;
+  changePassword: (params: {
+    currentPassword: string;
+    password: string;
+    passwordConfirmation: string;
+  }) => Promise<AuthSession>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [jwt, setJwt] = useState<string | null>(() => getToken());
-  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
-  const [status, setStatus] = useState<AuthStatus>(() =>
-    getToken() ? "authenticated" : "unauthenticated",
-  );
+  const [jwt, setJwt] = useState<string | null>(() => tokenStore.getToken());
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [status, setStatus] = useState<AuthStatus>("loading");
 
   useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== null && e.key !== AUTH_TOKEN_KEY && e.key !== AUTH_USER_KEY) return;
-      const updatedJwt = getToken();
-      const updatedUser = getStoredUser();
-      setJwt(updatedJwt);
-      setUser(updatedUser);
-      setStatus(updatedJwt ? "authenticated" : "unauthenticated");
+    let mounted = true;
+
+    const restoreSession = async () => {
+      try {
+        const session = await refreshTokenRequest();
+        console.log("Restored session:", session);
+        if (mounted) {
+          setJwt(session.jwt);
+          setUser(session.user);
+          setStatus("authenticated");
+        }
+      } catch (error) {
+        if (mounted) {
+          setJwt(null);
+          setUser(null);
+          setStatus("unauthenticated");
+        }
+      }
     };
 
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    restoreSession();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -51,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       login: async (params) => {
         const session = await loginRequest(params);
-        setSession(session);
         setJwt(session.jwt);
         setUser(session.user);
         setStatus("authenticated");
@@ -59,22 +80,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       register: async (params) => {
         const session = await registerRequest(params);
-        setSession(session);
         setJwt(session.jwt);
         setUser(session.user);
         setStatus("authenticated");
         return session;
       },
-      changePassword: async (params) =>{
+      changePassword: async (params) => {
         const session = await changePasswordRequest(params);
-        setSession(session);
         setJwt(session.jwt);
         setUser(session.user);
         setStatus("authenticated");
         return session;
       },
-      logout: () => {
-        clearSession();
+      logout: async () => {
+        try {
+          await logoutRequest();
+        } catch (e) {
+          console.error("Logout failed", e);
+        }
         setJwt(null);
         setUser(null);
         setStatus("unauthenticated");
