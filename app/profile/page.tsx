@@ -9,6 +9,7 @@ import { RequireAuth, useAuth } from "@/features/auth";
 import { ErrorScreen, GameLayout, LoadingScreen, PixelButton, PixelCard } from "@/features/ui";
 import { SettingsModal } from "@/components/profile/SettingsModal";
 import { GlobalModalRef } from "@/features/ui/modal";
+import { AvatarUploader } from "@/components/profile/AvatarUploader";
 
 export default function ProfilePage() {
   const { logout } = useAuth();
@@ -66,15 +67,34 @@ export default function ProfilePage() {
             </PixelButton>
           }
         >
-          <div className="text-2xl leading-7 text-[color:var(--game-fg)]">
-            <div>
-              <span className="text-[color:var(--game-muted)]">Username:</span> {profile.username}
-            </div>
-            {profile.email && (
-              <div className="mt-2">
-                <span className="text-[color:var(--game-muted)]">Email:</span> {profile.email}
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-start gap-8">
+              {/* LEFT - TEXT */}
+              <div className="text-2xl leading-7 text-[color:var(--game-fg)]">
+                <div>
+                  <span className="text-[color:var(--game-muted)]">Username:</span>{" "}
+                  {profile.username}
+                </div>
+
+                {profile.email && (
+                  <div className="mt-2">
+                    <span className="text-[color:var(--game-muted)]">Email:</span>{" "}
+                    {profile.email}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* RIGHT - AVATAR */}
+              <div className="mr-30">
+                <AvatarUploader
+                profile={profile}
+                onUploaded={async () => {
+                  const me = await getMyProfile();
+                  setProfile(me);
+                }}
+              />
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">

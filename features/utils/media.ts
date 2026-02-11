@@ -9,7 +9,8 @@ export function withCmsUrl(path?: unknown): string | null {
   }
 
   return `${base.replace(/\/$/, "")}${path}`;
-}
+};
+
 export function getMediaUrl(media:MediaAsset | null): string | null {
   if (!media) return null;
   // case 1: đã có url
@@ -21,4 +22,20 @@ export function getMediaUrl(media:MediaAsset | null): string | null {
     return withCmsUrl(`/uploads/${media.name}`);
   }
   return null;
-}
+};
+
+export const  MEDIA_COLLECTION = {
+  USER: {
+    uid: "plugin::users-permissions.user",
+    fields: {
+      avatar: "avatar",
+    },
+  },
+  LESSON: {
+    uid: "api::lesson.lesson",
+    fields: {
+      background: "background",
+      mascot: "mascot",
+    },
+  },
+};
