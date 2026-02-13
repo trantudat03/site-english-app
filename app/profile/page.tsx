@@ -67,15 +67,13 @@ export default function ProfilePage() {
             </PixelButton>
           }
         >
-          <div className="flex flex-col gap-3">
-            <div className="flex justify-between items-start gap-8">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:pr-20">
               {/* LEFT - TEXT */}
-              <div className="text-2xl leading-7 text-[color:var(--game-fg)]">
+              <div className="flex-1 text-2xl leading-7 text-[color:var(--game-fg)]">
                 <div>
                   <span className="text-[color:var(--game-muted)]">Username:</span>{" "}
                   {profile.username}
                 </div>
-
                 {profile.email && (
                   <div className="mt-2">
                     <span className="text-[color:var(--game-muted)]">Email:</span>{" "}
@@ -85,7 +83,7 @@ export default function ProfilePage() {
               </div>
 
               {/* RIGHT - AVATAR */}
-              <div className="mr-30">
+              <div className="self-center">
                 <AvatarUploader
                 profile={profile}
                 onUploaded={async () => {
@@ -94,7 +92,6 @@ export default function ProfilePage() {
                 }}
               />
               </div>
-            </div>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
