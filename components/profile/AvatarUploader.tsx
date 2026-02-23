@@ -2,7 +2,7 @@
 
 import { uploadToStrapi } from "@/features/api";
 import { Profile } from "@/features/profile";
-import { MEDIA_COLLECTION } from "@/features/utils/media";
+import mediaConfig from "@/features/utils/media-collection.json";
 import { useRef, useState } from "react";
 
 type Props = {
@@ -23,29 +23,37 @@ export function AvatarUploader({ profile, onUploaded }: Props) {
   };
 
   const handleChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    try {
-      setLoading(true);
-
-      await uploadToStrapi({
-        file,
-        ref: MEDIA_COLLECTION.USER.uid,
-        refId: profile.id,
-        field: MEDIA_COLLECTION.USER.fields.avatar,
-      });
-
-      onUploaded?.();
-    } catch (err) {
-      console.error("Upload avatar failed", err);
-    } finally {
-      setLoading(false);
-      e.target.value = "";
+  try {
+    setLoading(true);
+    const userCollection = mediaConfig.collections.find(
+      (c) => c.uid === "plugin::users-permissions.user"
+    );
+    const avatarField = userCollection?.mediaFields.find(
+      (f) => f.name === "avatar"
+    );
+    if (!userCollection || !avatarField) {
+      return;
     }
-  };
+    await uploadToStrapi({
+      file,
+      ref: userCollection.uid,
+      refId: profile.id,
+      field: avatarField.name,
+    });
+
+    onUploaded?.();
+  } catch (err) {
+    console.error("Upload avatar failed", err);
+  } finally {
+    setLoading(false);
+    e.target.value = "";
+  }
+};
 
   return (
     <div
