@@ -1,8 +1,5 @@
-export type MediaAsset = {
-  id: number;
-  name?: string;
-  url: string;
-};
+import { MediaAsset } from "../lesson";
+
 export type Profile = {
   id: number;
   username: string;
