@@ -1,10 +1,14 @@
 import { ApiErrorPayload } from "@/features/api/strapiTypes";
-import { AUTH_TOKEN_KEY, clearSession } from "@/features/auth/storage";
+import { tokenStore } from "@/features/auth/tokenStore";
 
 export const DEFAULT_STRAPI_URL = "http://localhost:1337";
 
 export function getStrapiBaseUrl() {
-  return process.env.NEXT_PUBLIC_STRAPI_URL?.trim() || DEFAULT_STRAPI_URL;
+  return (
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_STRAPI_URL?.trim() ||
+    DEFAULT_STRAPI_URL
+  );
 }
 
 function toAbsoluteUrl(pathOrUrl: string) {
@@ -104,8 +108,41 @@ export async function fetchJson<T>(
 }
 
 export function clearClientAuthStorage() {
-  if (typeof window === "undefined") return;
-  clearSession();
+  tokenStore.setToken(null);
+}
+
+// Internal refresh logic to avoid circular dependency with authApi
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
+async function attemptRefresh(): Promise<string> {
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
+  console.log("Starting silent refresh attempt...");
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      // Use credentials: 'include' to send the HttpOnly refreshToken cookie
+      const response = await fetchJson<{ jwt: string }>("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+      console.log("Silent refresh successful. New token received.");
+      tokenStore.setToken(response.jwt);
+      return response.jwt;
+    } catch (error) {
+      console.error("Silent refresh failed:", error);
+      tokenStore.setToken(null);
+      throw error;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 export async function fetchWithAuth<T>(
@@ -119,25 +156,61 @@ export async function fetchWithAuth<T>(
     });
   }
 
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  let token = tokenStore.getToken();
   const url = toAbsoluteUrl(pathOrUrl);
 
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers || {}),
-    },
-  });
-
-  if (res.status === 401) {
-    clearClientAuthStorage();
-    window.location.assign("/login");
-    throw new HttpError("Session expired. Please log in again.", {
-      status: 401,
-      url,
+  const makeRequest = async (authToken: string | null) => {
+    return fetch(url, {
+      ...init,
+      headers: {
+        Accept: "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(init?.headers || {}),
+      },
     });
+  };
+
+  let res = await makeRequest(token);
+
+  // If 401, try to refresh and retry ONCE
+  if (res.status === 401) {
+    // Parse the error payload first to decide whether token is actually expired
+    let normalized401: ApiErrorPayload | undefined;
+    try {
+      const raw = await parseErrorPayload(res);
+      normalized401 = normalizeErrorPayload(raw);
+    } catch {
+      normalized401 = undefined;
+    }
+    const msg = (normalized401?.message || "").toLowerCase();
+    const looksExpired =
+      msg.includes("expired") ||
+      msg.includes("token expired") ||
+      msg.includes("jwt expired");
+
+    if (looksExpired) {
+      console.warn(`401 from ${url} indicates expired token. Attempting refresh...`);
+      try {
+        const newToken = await attemptRefresh();
+        res = await makeRequest(newToken);
+      } catch (refreshError) {
+        console.error("Refresh failed during 401 handling. Keeping on page for debugging.", refreshError);
+        clearClientAuthStorage();
+        // Auto-redirect disabled to allow investigating logs and network
+        throw new HttpError("Session expired. Please log in again.", {
+          status: 401,
+          url,
+          payload: normalized401,
+        });
+      }
+    } else {
+      // Not an expiration-related 401; do not try refresh to avoid 404 loops
+      throw new HttpError(normalized401?.message || toFriendlyMessage(401), {
+        status: 401,
+        url,
+        payload: normalized401,
+      });
+    }
   }
 
   if (!res.ok) {
