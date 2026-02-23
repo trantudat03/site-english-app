@@ -99,6 +99,7 @@ export default function LessonAttemptPage() {
   const currentResponse = answers[current.id];
   const answeredCount = questions.filter((q) => isAnswered(q, answers[q.id])).length;
   const allAnswered = answeredCount === questions.length;
+  const unanswered = questions.map((q, i) => ({ q, i })).filter(({ q }) => !isAnswered(q, answers[q.id]));
 
   return (
     <RequireAuth>
@@ -139,25 +140,9 @@ export default function LessonAttemptPage() {
               <PixelButton
                 size="lg"
                 variant="secondary"
-                onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}
-                disabled={index === questions.length - 1}
-              >
-                Next
-              </PixelButton>
-            </div>
-
-            <div className="flex gap-3">
-              <Link href="/lessons" className="inline-flex">
-                <PixelButton size="lg" variant="ghost">
-                  Retreat
-                </PixelButton>
-              </Link>
-              <PixelButton
-                size="lg"
-                variant="primary"
-                disabled={!allAnswered}
                 onClick={() => {
-                  const payload = {
+                  if (index === questions.length - 1) {
+                    const payload = {
                     lessonId,
                     attemptId,
                     questions,
@@ -167,17 +152,28 @@ export default function LessonAttemptPage() {
                   };
                   sessionStorage.setItem(`peql_submit_${lessonId}_${attemptId}`, JSON.stringify(payload));
                   router.push(`/lessons/${lessonId}/submit?attemptId=${encodeURIComponent(attemptId)}`);
+                  } else {
+                    setIndex((i) => Math.min(questions.length - 1, i + 1))
+                  }
                 }}
+                disabled={index === questions.length - 1 && !allAnswered}
               >
-                Submit Run
+                {index === questions.length - 1 ? "Submit" : "Next"}
               </PixelButton>
             </div>
           </div>
 
-          {!allAnswered && (
-            <PixelCard title="Gate Locked" subtitle="Answer every question to submit.">
+          {!allAnswered && index === questions.length - 1 && (
+            <PixelCard title="Gate Locked">
               <div className="text-2xl text-[color:var(--game-muted)]">
-                Find the missing answers to open the portal.
+                Missing questions:
+                <div className="mt-2 text-base text-[color:var(--game-muted)] flex gap-2">
+                  {unanswered.map(({ q, i }) => (
+                    <div key={q.id} className="flex items-center cursor-pointer" onClick={() =>setIndex(i)}>
+                      <span className="pixel-frame bg-[color:var(--pixel-panel-2)] px-2 py-0.5 text-[color:var(--game-accent-2)]">{i + 1}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </PixelCard>
           )}
