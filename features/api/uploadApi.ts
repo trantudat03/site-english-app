@@ -2,7 +2,6 @@ import { fetchWithAuth } from "./strapiFetch";
 
 export interface UploadProps {
   file: File | File[];
-  apiUrl: string;
   ref: string;
   refId: string | number;
   field: string;
@@ -17,11 +16,14 @@ export interface UploadProps {
  */
 export async function uploadToStrapi({
   file,
-  apiUrl,
   ref,
   refId,
   field,
 }: UploadProps) {
+  const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+  if (!apiUrl) {
+    throw new Error("NEXT_PUBLIC_STRAPI_URL is not defined");
+  }
   const formData = new FormData();
 
   // Handle single or multiple files
