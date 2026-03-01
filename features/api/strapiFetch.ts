@@ -1,5 +1,4 @@
 import { ApiErrorPayload } from "@/features/api/strapiTypes";
-import { AUTH_TOKEN_KEY, clearSession } from "@/features/auth/storage";
 
 export const DEFAULT_STRAPI_URL = "http://localhost:1337";
 
@@ -8,6 +7,12 @@ export function getStrapiBaseUrl() {
 }
 
 function toAbsoluteUrl(pathOrUrl: string) {
+  if (pathOrUrl.startsWith("/api/")) {
+    return pathOrUrl;
+  }
+  if (pathOrUrl.startsWith("api/")) {
+    return `/${pathOrUrl}`;
+  }
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
     return pathOrUrl;
   }
@@ -105,7 +110,6 @@ export async function fetchJson<T>(
 
 export function clearClientAuthStorage() {
   if (typeof window === "undefined") return;
-  clearSession();
 }
 
 export async function fetchWithAuth<T>(
@@ -119,14 +123,12 @@ export async function fetchWithAuth<T>(
     });
   }
 
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const url = toAbsoluteUrl(pathOrUrl);
 
   const res = await fetch(url, {
     ...init,
     headers: {
       Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers || {}),
     },
   });
