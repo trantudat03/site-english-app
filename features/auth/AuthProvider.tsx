@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { AuthSession, AuthUser } from "@/features/auth/types";
-import { changePassword as changePasswordRequest, login as loginRequest, logout as logoutRequest, refresh as refreshRequest, register as registerRequest } from "@/features/auth/authApi";
+import { changePassword as changePasswordRequest, login as loginRequest, logout as logoutRequest, register as registerRequest } from "@/features/auth/authApi";
 import { fetchWithAuth } from "@/features/api";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await refreshRequest();
         const currentUser = await fetchWithAuth<AuthUser>("/api/users/me");
         setUser(currentUser);
         setStatus("authenticated");
