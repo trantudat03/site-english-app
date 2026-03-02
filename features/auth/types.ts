@@ -5,6 +5,10 @@ export type AuthUser = {
 };
 
 export type AuthSession = {
-  jwt: string;
-  user: AuthUser;
+  success: true;
+};
+
+export type RefreshResponse = {
+  success: true;
+  user?: AuthUser;
 };
