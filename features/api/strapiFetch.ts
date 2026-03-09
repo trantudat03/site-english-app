@@ -134,11 +134,6 @@ export async function fetchWithAuth<T>(
   });
 
   if (res.status === 401) {
-   
-    const path = typeof window !== "undefined" ? window.location.pathname : "";
-    if (path !== "/login" && path !== "/register") {
-      window.location.assign("/login");
-    }
     throw new HttpError("Session expired. Please log in again.", {
       status: 401,
       url,

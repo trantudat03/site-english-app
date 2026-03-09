@@ -3,7 +3,7 @@ import { getStrapiBaseUrl } from "@/features/api/strapiFetch";
 
 const REFRESH_COOKIE_NAME = "refreshToken";
 const ACCESS_COOKIE_NAME = "accessToken";
-const COOKIE_OPTIONS = {
+const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
@@ -141,12 +141,12 @@ async function handleProxy(req: NextRequest, params: Promise<{ path: string[] }>
     nextRes.cookies.set(ACCESS_COOKIE_NAME, rotatedAccessToken, ACCESS_COOKIE_OPTIONS);
   }
   if (rotatedRefreshToken) {
-    nextRes.cookies.set(REFRESH_COOKIE_NAME, rotatedRefreshToken, COOKIE_OPTIONS);
+    nextRes.cookies.set(REFRESH_COOKIE_NAME, rotatedRefreshToken, REFRESH_COOKIE_OPTIONS);
   }
 
   if (res.status === 401) {
     nextRes.cookies.set(ACCESS_COOKIE_NAME, "", { ...ACCESS_COOKIE_OPTIONS, maxAge: 0 });
-    nextRes.cookies.set(REFRESH_COOKIE_NAME, "", { ...COOKIE_OPTIONS, maxAge: 0 });
+    nextRes.cookies.set(REFRESH_COOKIE_NAME, "", { ...REFRESH_COOKIE_OPTIONS, maxAge: 0 });
   }
 
   return nextRes;
