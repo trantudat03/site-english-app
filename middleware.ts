@@ -48,6 +48,24 @@ function isTokenLikelyValid(token: string) {
   return exp - now > 30;
 }
 
+function normalizeNextPath(nextValue: string | null) {
+  if (!nextValue) return null;
+  if (!nextValue.startsWith("/")) return null;
+  if (nextValue.startsWith("//")) return null;
+  return nextValue;
+}
+
+function applyNextPath(url: { pathname: string; search: string }, nextPath: string) {
+  const qIndex = nextPath.indexOf("?");
+  if (qIndex === -1) {
+    url.pathname = nextPath;
+    url.search = "";
+    return;
+  }
+  url.pathname = nextPath.slice(0, qIndex) || "/";
+  url.search = nextPath.slice(qIndex);
+}
+
 async function tryRefresh(refreshToken: string) {
   const base = stripTrailingSlash(process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337");
   const res = await fetch(`${base}/api/auth/refresh`, {
@@ -99,12 +117,16 @@ export async function middleware(req: NextRequest) {
   const refreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value ?? null;
 
   const hasValidAccess = accessToken ? isTokenLikelyValid(accessToken) : false;
+  const nextPath = normalizeNextPath(req.nextUrl.searchParams.get("next"));
 
   if (isAuthPage(pathname)) {
     if (hasValidAccess) {
       const url = req.nextUrl.clone();
-      url.pathname = "/";
-      url.search = "";
+      if (nextPath) applyNextPath(url, nextPath);
+      else {
+        url.pathname = "/";
+        url.search = "";
+      }
       return NextResponse.redirect(url);
     }
 
@@ -112,8 +134,11 @@ export async function middleware(req: NextRequest) {
       const rotated = await tryRefresh(refreshToken);
       if (rotated) {
         const url = req.nextUrl.clone();
-        url.pathname = "/lessons";
-        url.search = "";
+        if (nextPath) applyNextPath(url, nextPath);
+        else {
+          url.pathname = "/lessons";
+          url.search = "";
+        }
         const res = NextResponse.redirect(url);
         res.cookies.set(ACCESS_COOKIE_NAME, rotated.accessToken, ACCESS_COOKIE_OPTIONS);
         if (rotated.refreshToken) {
@@ -148,7 +173,8 @@ export async function middleware(req: NextRequest) {
 
   const url = req.nextUrl.clone();
   url.pathname = "/login";
-  url.searchParams.set("next", pathname);
+  url.search = "";
+  url.searchParams.set("next", `${pathname}${req.nextUrl.search}`);
   const res = NextResponse.redirect(url);
   res.cookies.set(ACCESS_COOKIE_NAME, "", { ...ACCESS_COOKIE_OPTIONS, maxAge: 0 });
   res.cookies.set(REFRESH_COOKIE_NAME, "", { ...REFRESH_COOKIE_OPTIONS, maxAge: 0 });
@@ -158,4 +184,3 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/((?!api/|_next/|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)"],
 };
-
