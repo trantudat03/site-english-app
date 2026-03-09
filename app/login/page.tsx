@@ -10,16 +10,11 @@ import { GameLayout, PixelButton, PixelCard } from "@/features/ui";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { status, login } = useAuth();
+  const { login } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (status === "authenticated") {
-    router.replace("/lessons");
-    return null;
-  }
 
   return (
     <GameLayout title="Login" subtitle="Load your save file and continue.">
