@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import {useSyncExternalStore } from "react";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { LoadingScreen } from "@/features/ui";
@@ -23,17 +22,12 @@ function getHydrationServerSnapshot() {
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const { status } = useAuth();
   const hydrated = useSyncExternalStore(
     subscribeHydration,
     getHydrationSnapshot,
     getHydrationServerSnapshot,
   );
-
-  useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login");
-  }, [router, status]);
 
   if (!hydrated || status !== "authenticated") {
     return <LoadingScreen title="Checking Save File" />;
