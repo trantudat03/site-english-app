@@ -19,6 +19,10 @@ export async function uploadToStrapi({
   refId,
   field,
 }: UploadProps) {
+  const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+  if (!apiUrl) {
+    throw new Error("NEXT_PUBLIC_STRAPI_URL is not defined");
+  }
   const formData = new FormData();
 
   // Handle single or multiple files
