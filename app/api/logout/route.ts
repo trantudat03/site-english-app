@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStrapiBaseUrl } from "@/features/api/strapiFetch";
-
-const REFRESH_COOKIE_NAME = "refreshToken";
-const ACCESS_COOKIE_NAME = "accessToken";
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-};
+import {
+  ACCESS_COOKIE_NAME,
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_NAME,
+  REFRESH_COOKIE_OPTIONS,
+} from "@/lib/auth-constants";
 
 function stripTrailingSlash(url: string) {
   return url.replace(/\/+$/, "");
@@ -27,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ success: true }, { status: 200 });
-  res.cookies.set(REFRESH_COOKIE_NAME, "", { ...COOKIE_OPTIONS, maxAge: 0 });
-  res.cookies.set(ACCESS_COOKIE_NAME, "", { ...COOKIE_OPTIONS, maxAge: 0 });
+  res.cookies.set(REFRESH_COOKIE_NAME, "", { ...REFRESH_COOKIE_OPTIONS, maxAge: 0 });
+  res.cookies.set(ACCESS_COOKIE_NAME, "", { ...ACCESS_COOKIE_OPTIONS, maxAge: 0 });
   return res;
 }

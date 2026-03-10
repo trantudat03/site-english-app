@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStrapiBaseUrl } from "@/features/api/strapiFetch";
-
-const REFRESH_COOKIE_NAME = "refreshToken";
-const ACCESS_COOKIE_NAME = "accessToken";
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 30 * 24 * 60 * 60,
-};
-const ACCESS_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 15 * 60,
-};
+import {
+  ACCESS_COOKIE_NAME,
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_NAME,
+  REFRESH_COOKIE_OPTIONS,
+} from "@/lib/auth-constants";
 
 function stripTrailingSlash(url: string) {
   return url.replace(/\/+$/, "");
@@ -32,23 +21,18 @@ async function readJsonSafely(res: Response) {
   }
 }
 
-export async function POST(req: NextRequest) {
-  const currentRefreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value;
-  if (!currentRefreshToken) {
-    return NextResponse.json({ message: "Missing refresh token" }, { status: 401 });
-  }
-
+async function doRefresh(refreshToken: string) {
   const strapiBase = stripTrailingSlash(getStrapiBaseUrl());
   const strapiRes = await fetch(`${strapiBase}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ refreshToken: currentRefreshToken }),
+    body: JSON.stringify({ refreshToken }),
   });
 
   const payload = (await readJsonSafely(strapiRes)) ?? (await strapiRes.text().catch(() => ""));
 
   if (!strapiRes.ok) {
-    return NextResponse.json(payload || { message: "Refresh failed" }, { status: strapiRes.status });
+    return { ok: false, status: strapiRes.status, payload };
   }
 
   const data = (payload ?? {}) as Record<string, unknown>;
@@ -60,13 +44,28 @@ export async function POST(req: NextRequest) {
   const user = (data.user ?? null) as unknown;
 
   if (!accessToken) {
-    return NextResponse.json({ message: "Invalid refresh response" }, { status: 502 });
+    return { ok: false, status: 502, payload: { message: "Invalid refresh response" } };
   }
 
-  const res = NextResponse.json({ success: true, user }, { status: 200 });
-  res.cookies.set(ACCESS_COOKIE_NAME, accessToken, ACCESS_COOKIE_OPTIONS);
-  if (nextRefreshToken) {
-    res.cookies.set(REFRESH_COOKIE_NAME, nextRefreshToken, COOKIE_OPTIONS);
+  return { ok: true, accessToken, nextRefreshToken, user };
+}
+
+export async function POST(req: NextRequest) {
+  const currentRefreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value;
+  if (!currentRefreshToken) {
+    return NextResponse.json({ message: "Missing refresh token" }, { status: 401 });
+  }
+
+  const result = await doRefresh(currentRefreshToken);
+
+  if (!result.ok) {
+    return NextResponse.json(result.payload || { message: "Refresh failed" }, { status: result.status });
+  }
+
+  const res = NextResponse.json({ success: true, user: result.user }, { status: 200 });
+  res.cookies.set(ACCESS_COOKIE_NAME, result.accessToken as string, ACCESS_COOKIE_OPTIONS);
+  if (result.nextRefreshToken) {
+    res.cookies.set(REFRESH_COOKIE_NAME, result.nextRefreshToken as string, REFRESH_COOKIE_OPTIONS);
   }
   return res;
 }
