@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStrapiBaseUrl } from "@/features/api/strapiFetch";
-
-const REFRESH_COOKIE_NAME = "refreshToken";
-const ACCESS_COOKIE_NAME = "accessToken";
-const REFRESH_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 30 * 24 * 60 * 60,
-};
-const ACCESS_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 15 * 60,
-};
+import {
+  ACCESS_COOKIE_NAME,
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_NAME,
+  REFRESH_COOKIE_OPTIONS,
+} from "@/lib/auth-constants";
 
 function stripTrailingSlash(url: string) {
   return url.replace(/\/+$/, "");
@@ -55,6 +44,21 @@ async function refreshTokens(refreshToken: string) {
   if (!accessToken) return null;
 
   return { accessToken, refreshToken: nextRefreshToken };
+}
+
+type RotatedTokens = { accessToken: string; refreshToken: string | null };
+
+const refreshInFlight = new Map<string, Promise<RotatedTokens | null>>();
+
+async function refreshTokensSingleFlight(refreshToken: string) {
+  const existing = refreshInFlight.get(refreshToken);
+  if (existing) return existing;
+
+  const promise = refreshTokens(refreshToken).finally(() => {
+    refreshInFlight.delete(refreshToken);
+  });
+  refreshInFlight.set(refreshToken, promise);
+  return promise;
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
@@ -112,7 +116,7 @@ async function handleProxy(req: NextRequest, params: Promise<{ path: string[] }>
   if (res.status === 401) {
     const refreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value;
     if (refreshToken) {
-      const rotated = await refreshTokens(refreshToken);
+      const rotated = await refreshTokensSingleFlight(refreshToken);
       if (rotated) {
         rotatedAccessToken = rotated.accessToken;
         rotatedRefreshToken = rotated.refreshToken ?? null;
