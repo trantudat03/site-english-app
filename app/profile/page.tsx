@@ -67,7 +67,7 @@ export default function ProfilePage() {
             </PixelButton>
           }
         >
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:pr-20">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 md:pr-20">
               {/* LEFT - TEXT */}
               <div className="flex-1 text-2xl leading-7 text-[color:var(--game-fg)]">
                 <div>

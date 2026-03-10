@@ -58,9 +58,8 @@ export function AvatarUploader({ profile, onUploaded }: Props) {
   return (
     <div
       onClick={handleClick}
-      className="relative w-36 h-36 rounded-full overflow-hidden 
-             cursor-pointer group shrink-0
-             border-4 border-black"
+      className="relative w-30 h-30 rounded-full overflow-hidden 
+             cursor-pointer group shrink-0"
     >
       <img
         src={avatarUrl}
