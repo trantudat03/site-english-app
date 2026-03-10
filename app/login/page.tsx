@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { HttpError } from "@/features/api";
 import { useAuth } from "@/features/auth";
@@ -10,16 +10,16 @@ import { GameLayout, PixelButton, PixelCard } from "@/features/ui";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { status, login } = useAuth();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (status === "authenticated") {
-    router.replace("/lessons");
-    return null;
-  }
+  const nextPathRaw = searchParams.get("next");
+  const nextPath =
+    nextPathRaw && nextPathRaw.startsWith("/") && !nextPathRaw.startsWith("//") ? nextPathRaw : null;
 
   return (
     <GameLayout title="Login" subtitle="Load your save file and continue.">
@@ -38,7 +38,7 @@ export default function LoginPage() {
             setError(null);
             try {
               await login({ identifier, password });
-              router.replace("/lessons");
+              router.replace(nextPath ?? "/lessons");
             } catch (err) {
               if (err instanceof HttpError) setError(err.message);
               else setError("Login failed. Please try again.");
@@ -80,7 +80,10 @@ export default function LoginPage() {
             <PixelButton size="lg" variant="primary" type="submit" loading={submitting}>
               Enter
             </PixelButton>
-            <Link href="/register" className="inline-flex">
+            <Link
+              href={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : "/register"}
+              className="inline-flex"
+            >
               <PixelButton size="lg" variant="secondary" type="button">
                 New Player
               </PixelButton>

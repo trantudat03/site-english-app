@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { HttpError } from "@/features/api";
 import { useAuth } from "@/features/auth";
@@ -10,6 +10,7 @@ import { GameLayout, PixelButton, PixelCard } from "@/features/ui";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { status, register } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -18,11 +19,15 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const nextPathRaw = searchParams.get("next");
+  const nextPath =
+    nextPathRaw && nextPathRaw.startsWith("/") && !nextPathRaw.startsWith("//") ? nextPathRaw : null;
+
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/lessons");
+      router.replace(nextPath ?? "/lessons");
     }
-  }, [status, router]);
+  }, [nextPath, router, status]);
 
   return (
     <GameLayout title="Register" subtitle="Create a new character.">
@@ -45,7 +50,7 @@ export default function RegisterPage() {
             setError(null);
             try {
               await register({ username, email, password });
-              router.replace("/lessons");
+              router.replace(nextPath ?? "/lessons");
             } catch (err) {
                console.error("REGISTER ERROR:", err);
               if (err instanceof HttpError) setError(err.message);
@@ -117,7 +122,10 @@ export default function RegisterPage() {
             <PixelButton size="lg" variant="primary" type="submit" loading={submitting}>
               Create
             </PixelButton>
-            <Link href="/login" className="inline-flex">
+            <Link
+              href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"}
+              className="inline-flex"
+            >
               <PixelButton size="lg" variant="secondary" type="button">
                 I Have an Account
               </PixelButton>
@@ -128,4 +136,3 @@ export default function RegisterPage() {
     </GameLayout>
   );
 }
-
